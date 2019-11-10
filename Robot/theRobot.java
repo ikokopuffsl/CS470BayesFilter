@@ -247,6 +247,14 @@ public class theRobot extends JFrame {
     public static final int WEST = 3;
     public static final int STAY = 4;
 
+    /*
+    * Added the look up tables for the probabilities
+    */
+    double[][] left;
+    double[][] right;
+    double[][] up;
+    double[][] down;
+
     Color bkgroundColor = new Color(230,230,230);
     
     static mySmartMap myMaps; // instance of the class that draw everything to the GUI
@@ -286,6 +294,173 @@ public class theRobot extends JFrame {
     
         // Read in the world
         mundo = new World(mundoName);
+
+        /*
+        * Create the look up tables for the probabilities of each state for each direction 
+        */
+        int state_count = 0;
+
+        // State table. Recreate the mundo world with the integer to represent the name of the state
+        double[][] state_id = new double[mundo.height][mundo.width];
+        // Find out how many States we have
+        for (int y = 0; y < mundo.height; y++) {
+            for (int x = 0; x < mundo.width; x++) {
+                if (mundo.grid[y][x] == 0) {
+                    state_id[y][x] = state_count;
+                    state_count++;
+                }
+                else {
+                    state_id[y][x] = -1;
+                }
+            }
+        }
+
+        // Need to figure out the robot probability of making the correct move
+        // NEED to change to the real one.
+        double robot_move_assurance = 0.7;
+
+        double[][] left = new double[state_count][state_count];
+        double[][] right = new double[state_count][state_count];
+        double[][] up = new double[state_count][state_count];
+        double[][] down = new double[state_count][state_count];
+
+        // Each row is a state and the row array represent the probability we will go to the state i given we are at the current state (row index)
+        // Create the 4 look up tables
+        for (int t = 0; t < 4; t++) {                               // The four tables
+            probability_index = 0;
+            for(int y = 0; i < mundo.height; i++) {
+                for (int x = 0; j < mundo.width; j++) {
+                    if (mundo.grid[y][x] == 0) {                    // If it is a possible state
+                        double[] temp_probability = new double[state_count];
+                        double non_robot_move = (1 - robot_move_assurance) / 3;
+                        if (t == 0) { // Tells us Robot Direction - UP
+                            // Edge Cases Included
+                            if (y == 0 || state_id[y-1][x] == -1) { // Wall - UP
+                                temp_probability[state_id[y][x]] += robot_move_assurance; // Add the probability of robot to current spot
+                            }
+                            else {
+                                temp_probability[state_id[y-1][x]] += robot_move_assurance;
+                            }
+                            if (x == (state_count - 1) || state_id[y][x+1] == -1) { // Wall- RIGHT
+                                temp_probability[state_id[y][x]] += non_robot_move; 
+                            }
+                            else {
+                                temp_probability[state_id[y][x+1]] += non_robot_move;
+                            }
+                            if ( y == (state_count - 1) || state_id[y-1][x] == -1) { // Wall - DOWN
+                                temp_probability[state_id[y][x]] += non_robot_move;
+                            }
+                            else {
+                                temp_probability[state_id[y-1][x]] += non_robot_move;
+                            }
+                            if (x == 0 || state_id[y][x-1] == -1) { // Wall - LEFT
+                                temp_probability[state_id[y][x]] += non_robot_move;
+                            }
+                            else {
+                                temp_probability[state_id[y][x-1]] += non_robot_move;
+                            }
+                        }
+                        if (t == 1) { // Tells us Robot Direction - RIGHT
+                            if (y == 0 || state_id[y-1][x] == -1) { // Wall - UP
+                                temp_probability[state_id[y][x]] += non_robot_move;
+                            }
+                            else {
+                                temp_probability[state_id[y-1][x]] += non_robot_move;
+                            }
+                            if (x == (state_count - 1) || state_id[y][x+1] == -1) { // Wall- RIGHT
+                                temp_probability[state_id[y][x]] += robot_move_assurance; 
+                            }
+                            else {
+                                temp_probability[state_id[y][x+1]] += robot_move_assurance;
+                            }
+                            if (y == (state_count - 1) || state_id[y-1][x] == -1) { // Wall - DOWN
+                                temp_probability[state_id[y][x]] += non_robot_move;
+                            }
+                            else {
+                                temp_probability[state_id[y-1][x]] += non_robot_move;
+                            }
+                            if (x == 0 || state_id[y][x-1] == -1) { // Wall - LEFT
+                                temp_probability[state_id[y][x]] += non_robot_move;
+                            }
+                            else {
+                                temp_probability[state_id[y][x-1]] += non_robot_move;
+                            }
+                        }
+                        if (t == 2) { // Tells us Robot Direction - DOWN
+                            if (y == 0 || state_id[y-1][x] == -1) { // Wall - UP
+                                temp_probability[state_id[y][x]] += non_robot_move;
+                            }
+                            else {
+                                temp_probability[state_id[y-1][x]] += non_robot_move;
+                            }
+                            if (x == (state_count - 1) || state_id[y][x+1] == -1) { // Wall- RIGHT
+                                temp_probability[state_id[y][x]] += non_robot_move; 
+                            }
+                            else {
+                                temp_probability[state_id[y][x+1]] += non_robot_move;
+                            }
+                            if (x == (state_count - 1) || state_id[y-1][x] == -1) { // Wall - DOWN
+                                temp_probability[state_id[y][x]] += robot_move_assurance;
+                            }
+                            else {
+                                temp_probability[state_id[y-1][x]] += robot_move_assurance;
+                            }
+                            if (x == 0 || state_id[y][x-1] == -1) { // Wall - LEFT
+                                temp_probability[state_id[y][x]] += non_robot_move;
+                            }
+                            else {
+                                temp_probability[state_id[y][x-1]] += non_robot_move;
+                            }
+                        }
+                        if (t == 3) { // Tells us Robot Direction - LEFT
+                            if (y == 0 || state_id[y-1][x] == -1) { // Wall - UP
+                                temp_probability[state_id[y][x]] += non_robot_move;
+                            }
+                            else {
+                                temp_probability[state_id[y-1][x]] += non_robot_move;
+                            }
+                            if (x == (state_count - 1) || state_id[y][x+1] == -1) { // Wall- RIGHT
+                                temp_probability[state_id[y][x]] += non_robot_move; 
+                            }
+                            else {
+                                temp_probability[state_id[y][x+1]] += non_robot_move;
+                            }
+                            if (y == (state_count - 1) || state_id[y-1][x] == -1) { // Wall - DOWN
+                                temp_probability[state_id[y][x]] += non_robot_move;
+                            }
+                            else {
+                                temp_probability[state_id[y-1][x]] += non_robot_move;
+                            }
+                            if (x == 0 || state_id[y][x-1] == -1) { // Wall - LEFT
+                                temp_probability[state_id[y][x]] += robot_move_assurance;
+                            }
+                            else {
+                                temp_probability[state_id[y][x-1]] += robot_move_assurance;
+                            }
+                        }
+
+                        // Fill in each table, but need to fix so it is not based on y, it should be based on count
+                        if (t == 0) {
+                            up[probability_index] = temp_probability;
+                        }
+                        if (t == 1) {
+                            right[probability_index] = temp_probability;
+                        }
+                        if (t == 2) {
+                            down[probability_index] = temp_probability;
+                        }
+                        if (t == 3) {
+                            left[probability_index] = temp_probability;
+                        }
+                        probability_index++;
+                    }
+
+                }
+            }
+        }
+        /*
+        * End of Addition
+        */
         
         // set up the GUI that displays the information you compute
         int width = 500;
@@ -408,6 +583,13 @@ public class theRobot extends JFrame {
     //       For example, the sonar string 1001, specifies that the sonars found a wall in the North and West directions, but not in the South and East directions
     void updateProbabilities(int action, String sonars) {
         // your code
+
+        for (int y = 0; y < mundo.height; y++) {
+            for (int x = 0; x < mundo.width; x++) {
+                if (mundo.grid[x][y] == 0)
+                    count++;
+            }
+        }
 
         myMaps.updateProbs(probs); // call this function after updating your probabilities so that the
                                    //  new probabilities will show up in the probability map on the GUI
