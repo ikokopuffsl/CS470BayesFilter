@@ -318,7 +318,7 @@ public class theRobot extends JFrame {
 
         // Need to figure out the robot probability of making the correct move
         // NEED to change to the real one.
-        double robot_move_assurance = 0.7;
+        double robot_move_assurance = moveProb;
 
         double[][] left = new double[state_count][state_count];
         double[][] right = new double[state_count][state_count];
@@ -579,7 +579,23 @@ public class theRobot extends JFrame {
         
         myMaps.updateProbs(probs);
     }
-    
+    String findProbOfSonar(int y, int x,String sonars){
+        String actual = "";
+        if (mundo.grid[y-1][x] == -1) {actual += "1";}
+        else {actual += "0";}
+        if (mundo.grid[y][x-1] == -1) {actual += "1";}
+        else {actual += "0";}
+        if (mundo.grid[y+1][x] == -1) {actual += "1";}
+        else {actual += "0";}
+        if (mundo.grid[y][x+1] == -1) {actual += "1";}
+        else {actual += "0";}
+        if (actual.equals(sonars)){
+            return sensorAccuracy;
+        }
+        else{
+            return (1-sensorAccuracy);
+        }
+    }
     // TODO: update the probabilities of where the AI thinks it is based on the action selected and the new sonar readings
     //       To do this, you should update the 2D-array "probs"
     // Note: sonars is a bit string with four characters, specifying the sonar reading in the direction of North, South, East, and West
@@ -591,6 +607,7 @@ public class theRobot extends JFrame {
                                                    ",",down,
                                                    "l",right,
                                                    "j",left);
+
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
                 if (mundo.grid[y][x] == 0){
@@ -598,16 +615,23 @@ public class theRobot extends JFrame {
                 }
             }
         }
+        // Add in sensor data
+        Double normalization = 0.0;
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
                 if (mundo.grid[y][x] == 0){
-                    //probs[y][x] =
-                    // TODO need to add a table where given a state, the probability of a given reading is right. The right
-                    // reading would  have a prob equal to correctness of my sensor. The remaining 15 possible readings have a prob of (1-Pt)/15
+                    Double sonarProb = findProbOfSonar(y,x,sonars);
+                    normalization += sonarProb * probs[y][x];
+                    probs[y][x] = sonarProb * probs[y][x];
                 }
             }
         }
-
+        // Add in normalization constant
+        for (int y = 0; y < mundo.height; y++) {
+            for (int x = 0; x < mundo.width; x++) {
+                probs[y][x] = (1/normalization) * probs[y][x]
+            }
+        }
         myMaps.updateProbs(probs); // call this function after updating your probabilities so that the
                                    //  new probabilities will show up in the probability map on the GUI
     }
