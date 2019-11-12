@@ -306,6 +306,7 @@ public class theRobot extends JFrame {
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
                 if (mundo.grid[y][x] == 0) {
+                    // Assigning IDs to each state from top left to bottem right
                     state_id[y][x] = state_count;
                     state_count++;
                 }
@@ -347,11 +348,11 @@ public class theRobot extends JFrame {
                             else {
                                 temp_probability[state_id[y][x+1]] += non_robot_move;
                             }
-                            if ( y == (state_count - 1) || state_id[y-1][x] == -1) { // Wall - DOWN
+                            if ( y == (state_count - 1) || state_id[y+1][x] == -1) { // Wall - DOWN
                                 temp_probability[state_id[y][x]] += non_robot_move;
                             }
                             else {
-                                temp_probability[state_id[y-1][x]] += non_robot_move;
+                                temp_probability[state_id[y+1][x]] += non_robot_move;
                             }
                             if (x == 0 || state_id[y][x-1] == -1) { // Wall - LEFT
                                 temp_probability[state_id[y][x]] += non_robot_move;
@@ -373,11 +374,11 @@ public class theRobot extends JFrame {
                             else {
                                 temp_probability[state_id[y][x+1]] += robot_move_assurance;
                             }
-                            if (y == (state_count - 1) || state_id[y-1][x] == -1) { // Wall - DOWN
+                            if (y == (state_count - 1) || state_id[y+1][x] == -1) { // Wall - DOWN
                                 temp_probability[state_id[y][x]] += non_robot_move;
                             }
                             else {
-                                temp_probability[state_id[y-1][x]] += non_robot_move;
+                                temp_probability[state_id[y+1][x]] += non_robot_move;
                             }
                             if (x == 0 || state_id[y][x-1] == -1) { // Wall - LEFT
                                 temp_probability[state_id[y][x]] += non_robot_move;
@@ -399,11 +400,11 @@ public class theRobot extends JFrame {
                             else {
                                 temp_probability[state_id[y][x+1]] += non_robot_move;
                             }
-                            if (x == (state_count - 1) || state_id[y-1][x] == -1) { // Wall - DOWN
+                            if (x == (state_count - 1) || state_id[y+1][x] == -1) { // Wall - DOWN
                                 temp_probability[state_id[y][x]] += robot_move_assurance;
                             }
                             else {
-                                temp_probability[state_id[y-1][x]] += robot_move_assurance;
+                                temp_probability[state_id[y+1][x]] += robot_move_assurance;
                             }
                             if (x == 0 || state_id[y][x-1] == -1) { // Wall - LEFT
                                 temp_probability[state_id[y][x]] += non_robot_move;
@@ -425,11 +426,11 @@ public class theRobot extends JFrame {
                             else {
                                 temp_probability[state_id[y][x+1]] += non_robot_move;
                             }
-                            if (y == (state_count - 1) || state_id[y-1][x] == -1) { // Wall - DOWN
+                            if (y == (state_count - 1) || state_id[y+1][x] == -1) { // Wall - DOWN
                                 temp_probability[state_id[y][x]] += non_robot_move;
                             }
                             else {
-                                temp_probability[state_id[y-1][x]] += non_robot_move;
+                                temp_probability[state_id[y+1][x]] += non_robot_move;
                             }
                             if (x == 0 || state_id[y][x-1] == -1) { // Wall - LEFT
                                 temp_probability[state_id[y][x]] += robot_move_assurance;
@@ -461,6 +462,8 @@ public class theRobot extends JFrame {
         /*
         * End of Addition
         */
+
+
         
         // set up the GUI that displays the information you compute
         int width = 500;
@@ -583,11 +586,25 @@ public class theRobot extends JFrame {
     //       For example, the sonar string 1001, specifies that the sonars found a wall in the North and West directions, but not in the South and East directions
     void updateProbabilities(int action, String sonars) {
         // your code
-
+        //This line relies on running Java9
+        Map<String, Double[][]> actionMap = Map.of("i",up, 
+                                                   ",",down,
+                                                   "l",right,
+                                                   "j",left);
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
-                if (mundo.grid[x][y] == 0)
-                    count++;
+                if (mundo.grid[y][x] == 0){
+                    probs[y][x] = actionMap.get(action)[y][x] * probs[y][x];
+                }
+            }
+        }
+        for (int y = 0; y < mundo.height; y++) {
+            for (int x = 0; x < mundo.width; x++) {
+                if (mundo.grid[y][x] == 0){
+                    //probs[y][x] =
+                    // TODO need to add a table where given a state, the probability of a given reading is right. The right
+                    // reading would  have a prob equal to correctness of my sensor. The remaining 15 possible readings have a prob of (1-Pt)/15
+                }
             }
         }
 
