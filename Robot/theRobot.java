@@ -11,6 +11,9 @@ import java.io.*;
 import java.util.Random;
 import java.util.Scanner;
 import java.net.*;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Arrays;
 
 
 // This class draws the probability map and value iteration map that you create to the window
@@ -281,6 +284,7 @@ public class theRobot extends JFrame {
     // store your computed value of being in each state (x, y)
     double[][] Vs;
     
+    
     public theRobot(String _manual, int _decisionDelay) {
         // initialize variables as specified from the command-line
         if (_manual.equals("automatic"))
@@ -301,7 +305,7 @@ public class theRobot extends JFrame {
         int state_count = 0;
 
         // State table. Recreate the mundo world with the integer to represent the name of the state
-        double[][] state_id = new double[mundo.height][mundo.width];
+        int[][] state_id = new int[mundo.height][mundo.width];
         // Find out how many States we have
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
@@ -320,17 +324,26 @@ public class theRobot extends JFrame {
         // NEED to change to the real one.
         double robot_move_assurance = moveProb;
 
-        double[][] left = new double[state_count][state_count];
-        double[][] right = new double[state_count][state_count];
-        double[][] up = new double[state_count][state_count];
-        double[][] down = new double[state_count][state_count];
+        left = new double[state_count][state_count];
+        right = new double[state_count][state_count];
+        up = new double[state_count][state_count];
+        down = new double[state_count][state_count];
+
+        // System.out.println("BEFORE Left Initialized");
+        // for (int i = 0; i < state_count; i++) {
+        //     for (int j = 0; j < state_count; j++) {
+        //         System.out.print(left[i][j] + " ");
+        //     }
+        //     System.out.println();
+        // }
+
 
         // Each row is a state and the row array represent the probability we will go to the state i given we are at the current state (row index)
         // Create the 4 look up tables
         for (int t = 0; t < 4; t++) {                               // The four tables
-            probability_index = 0;
-            for(int y = 0; i < mundo.height; i++) {
-                for (int x = 0; j < mundo.width; j++) {
+            int probability_index = 0;
+            for(int y = 0; y < mundo.height; y++) {
+                for (int x = 0; x < mundo.width; x++) {
                     if (mundo.grid[y][x] == 0) {                    // If it is a possible state
                         double[] temp_probability = new double[state_count];
                         double non_robot_move = (1 - robot_move_assurance) / 3;
@@ -338,6 +351,7 @@ public class theRobot extends JFrame {
                             // Edge Cases Included
                             if (y == 0 || state_id[y-1][x] == -1) { // Wall - UP
                                 temp_probability[state_id[y][x]] += robot_move_assurance; // Add the probability of robot to current spot
+
                             }
                             else {
                                 temp_probability[state_id[y-1][x]] += robot_move_assurance;
@@ -442,16 +456,39 @@ public class theRobot extends JFrame {
 
                         // Fill in each table, but need to fix so it is not based on y, it should be based on count
                         if (t == 0) {
-                            up[probability_index] = temp_probability;
+                            // up[probability_index] = temp_probability;
+                            System.out.println("New Update on UP");
+                            for (int i = 0; i < state_count; i++) {
+                                System.out.print(temp_probability[i] + " ");
+                                up[probability_index][i] = temp_probability[i];
+                            }
+                            System.out.println();
                         }
                         if (t == 1) {
-                            right[probability_index] = temp_probability;
+                            // right[probability_index] = temp_probability;
+                            System.out.println("New Update on RIGHT");
+                            for (int i = 0; i < state_count; i++) {
+                                System.out.print(temp_probability[i] + " ");
+                                right[probability_index][i] = temp_probability[i];
+                            }
+                            System.out.println();
                         }
                         if (t == 2) {
-                            down[probability_index] = temp_probability;
+                            // down[probability_index] = temp_probability;
+                            System.out.println("New Update on DOWN");
+                            for (int i = 0; i < state_count; i++) {
+                                System.out.print(temp_probability[i] + " ");
+                                down[probability_index][i] = temp_probability[i];
+                            }
+                            System.out.println();
                         }
                         if (t == 3) {
-                            left[probability_index] = temp_probability;
+                            System.out.println("New Update on LEFT");
+                            for (int i = 0; i < state_count; i++) {
+                                System.out.print(temp_probability[i] + " ");
+                                left[probability_index][i] = temp_probability[i];
+                            }
+                            System.out.println();
                         }
                         probability_index++;
                     }
@@ -459,6 +496,36 @@ public class theRobot extends JFrame {
                 }
             }
         }
+
+        System.out.println("After UP Initialized");
+        for (int i = 0; i < state_count; i++) {
+            for (int j = 0; j < state_count; j++) {
+                System.out.print(up[i][j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println("After RIGHT Initialized");
+        for (int i = 0; i < state_count; i++) {
+            for (int j = 0; j < state_count; j++) {
+                System.out.print(right[i][j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println("After DOWN Initialized");
+        for (int i = 0; i < state_count; i++) {
+            for (int j = 0; j < state_count; j++) {
+                System.out.print(down[i][j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println("After Left Initialized");
+        for (int i = 0; i < state_count; i++) {
+            for (int j = 0; j < state_count; j++) {
+                System.out.print(left[i][j] + " ");
+            }
+            System.out.println();
+        }
+
         /*
         * End of Addition
         */
@@ -579,7 +646,7 @@ public class theRobot extends JFrame {
         
         myMaps.updateProbs(probs);
     }
-    String findProbOfSonar(int y, int x,String sonars){
+    double findProbOfSonar(int y, int x,String sonars){
         String actual = "";
         if (mundo.grid[y-1][x] == -1) {actual += "1";}
         else {actual += "0";}
@@ -602,11 +669,26 @@ public class theRobot extends JFrame {
     //       For example, the sonar string 1001, specifies that the sonars found a wall in the North and West directions, but not in the South and East directions
     void updateProbabilities(int action, String sonars) {
         // your code
+        // System.out.println(Arrays.deepToString(left));
+        // System.out.println(Arrays.deepToString(right));
+        // System.out.println(Arrays.deepToString(up));
+        // System.out.println(Arrays.deepToString(down));
+
         //This line relies on running Java9
-        Map<String, Double[][]> actionMap = Map.of("i",up, 
-                                                   ",",down,
-                                                   "l",right,
-                                                   "j",left);
+        Map<Integer, double[][]> actionMap = new HashMap<Integer, double[][]>();
+        actionMap.put(0,up);
+        actionMap.put(1,down);
+        actionMap.put(2,right);
+        actionMap.put(3,left);
+
+        // System.out.println(action);
+        // System.out.println("Prob Initialized");
+        // for (int i = 0; i < left.length; i++) {
+        //     for (int j = 0; j < left.length; j++) {
+        //         System.out.print((actionMap.get(action))[i][j] + " ");
+        //     }
+        //     System.out.println();
+        // }
 
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
@@ -616,11 +698,11 @@ public class theRobot extends JFrame {
             }
         }
         // Add in sensor data
-        Double normalization = 0.0;
+        double normalization = 0.0;
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
                 if (mundo.grid[y][x] == 0){
-                    Double sonarProb = findProbOfSonar(y,x,sonars);
+                    double sonarProb = findProbOfSonar(y,x,sonars);
                     normalization += sonarProb * probs[y][x];
                     probs[y][x] = sonarProb * probs[y][x];
                 }
@@ -629,7 +711,7 @@ public class theRobot extends JFrame {
         // Add in normalization constant
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
-                probs[y][x] = (1/normalization) * probs[y][x]
+                probs[y][x] = (1/normalization) * probs[y][x];
             }
         }
         myMaps.updateProbs(probs); // call this function after updating your probabilities so that the
@@ -644,11 +726,12 @@ public class theRobot extends JFrame {
     }
     
     void doStuff() {
+        
         int action;
         
         //valueIteration();  // TODO: function you will write in Part II of the lab
         initializeProbabilities();  // Initializes the location (probability) map
-        
+
         while (true) {
             try {
                 if (isManual)
