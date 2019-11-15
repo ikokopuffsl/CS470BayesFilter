@@ -320,23 +320,12 @@ public class theRobot extends JFrame {
             }
         }
 
-        // Need to figure out the robot probability of making the correct move
-        // NEED to change to the real one.
         double robot_move_assurance = moveProb;
 
         left = new double[state_count][state_count];
         right = new double[state_count][state_count];
         up = new double[state_count][state_count];
         down = new double[state_count][state_count];
-
-        // System.out.println("BEFORE Left Initialized");
-        // for (int i = 0; i < state_count; i++) {
-        //     for (int j = 0; j < state_count; j++) {
-        //         System.out.print(left[i][j] + " ");
-        //     }
-        //     System.out.println();
-        // }
-
 
         // Each row is a state and the row array represent the probability we will go to the state i given we are at the current state (row index)
         // Create the 4 look up tables
@@ -456,39 +445,34 @@ public class theRobot extends JFrame {
 
                         // Fill in each table, but need to fix so it is not based on y, it should be based on count
                         if (t == 0) {
-                            // up[probability_index] = temp_probability;
-                            System.out.println("New Update on UP");
+                            // System.out.println("New Update on UP");
                             for (int i = 0; i < state_count; i++) {
-                                System.out.print(temp_probability[i] + " ");
+                                // System.out.print(temp_probability[i] + " ");
                                 up[probability_index][i] = temp_probability[i];
                             }
-                            System.out.println();
+                            // System.out.println();
                         }
                         if (t == 1) {
-                            // right[probability_index] = temp_probability;
-                            System.out.println("New Update on RIGHT");
+                            // System.out.println("New Update on RIGHT");
                             for (int i = 0; i < state_count; i++) {
-                                System.out.print(temp_probability[i] + " ");
+                                // System.out.print(temp_probability[i] + " ");
                                 right[probability_index][i] = temp_probability[i];
                             }
-                            System.out.println();
+                            // System.out.println();
                         }
                         if (t == 2) {
-                            // down[probability_index] = temp_probability;
-                            System.out.println("New Update on DOWN");
+                            // System.out.println("New Update on DOWN");
                             for (int i = 0; i < state_count; i++) {
-                                System.out.print(temp_probability[i] + " ");
+                                // System.out.print(temp_probability[i] + " ");
                                 down[probability_index][i] = temp_probability[i];
                             }
-                            System.out.println();
+                            // System.out.println();
                         }
                         if (t == 3) {
-                            System.out.println("New Update on LEFT");
                             for (int i = 0; i < state_count; i++) {
-                                System.out.print(temp_probability[i] + " ");
                                 left[probability_index][i] = temp_probability[i];
                             }
-                            System.out.println();
+                            // System.out.println();
                         }
                         probability_index++;
                     }
@@ -497,34 +481,11 @@ public class theRobot extends JFrame {
             }
         }
 
-        System.out.println("After UP Initialized");
-        for (int i = 0; i < state_count; i++) {
-            for (int j = 0; j < state_count; j++) {
-                System.out.print(up[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("After RIGHT Initialized");
-        for (int i = 0; i < state_count; i++) {
-            for (int j = 0; j < state_count; j++) {
-                System.out.print(right[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("After DOWN Initialized");
-        for (int i = 0; i < state_count; i++) {
-            for (int j = 0; j < state_count; j++) {
-                System.out.print(down[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("After Left Initialized");
-        for (int i = 0; i < state_count; i++) {
-            for (int j = 0; j < state_count; j++) {
-                System.out.print(left[i][j] + " ");
-            }
-            System.out.println();
-        }
+        prettyPrint(up, "Constructor - UP");
+        prettyPrint(right, "Constructor - RIGHT");
+        prettyPrint(down, "Constructor - DOWN");
+        prettyPrint(left, "Constructor - LEFT");
+
 
         /*
         * End of Addition
@@ -643,6 +604,9 @@ public class theRobot extends JFrame {
                 }
             }
         }
+
+        prettyPrint(probs, "Initialize Probabilities");
+
         
         myMaps.updateProbs(probs);
     }
@@ -681,15 +645,6 @@ public class theRobot extends JFrame {
         actionMap.put(2,right);
         actionMap.put(3,left);
 
-        // System.out.println(action);
-        // System.out.println("Prob Initialized");
-        // for (int i = 0; i < left.length; i++) {
-        //     for (int j = 0; j < left.length; j++) {
-        //         System.out.print((actionMap.get(action))[i][j] + " ");
-        //     }
-        //     System.out.println();
-        // }
-
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
                 if (mundo.grid[y][x] == 0){
@@ -714,6 +669,9 @@ public class theRobot extends JFrame {
                 probs[y][x] = (1/normalization) * probs[y][x];
             }
         }
+
+        prettyPrint(probs, "Update Probabilities");
+
         myMaps.updateProbs(probs); // call this function after updating your probabilities so that the
                                    //  new probabilities will show up in the probability map on the GUI
     }
@@ -777,6 +735,16 @@ public class theRobot extends JFrame {
         }
     }
 
+
+    public void prettyPrint(double[][] matrix, String functionName) {
+        System.out.println(functionName);
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix.length; j++) {
+                System.out.printf("%.5f",matrix[i][j]);
+            }
+            System.out.println();
+        }
+    }
     // java theRobot [manual/automatic] [delay]
     public static void main(String[] args) {
         theRobot robot = new theRobot(args[0], Integer.parseInt(args[1]));  // starts up the robot
