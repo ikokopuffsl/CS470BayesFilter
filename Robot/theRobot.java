@@ -317,13 +317,13 @@ public class theRobot extends JFrame {
         // Find out how many States we have
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
-                if (mundo.grid[y][x] == 0) {
+                if (mundo.grid[x][y] == 0) {
                     // Assigning IDs to each state from top left to bottem right
-                    state_id[y][x] = state_count;
+                    state_id[x][y] = state_count;
                     state_count++;
                 }
                 else {
-                    state_id[y][x] = -1;
+                    state_id[x][y] = -1;
                 }
             }
         }
@@ -629,7 +629,9 @@ public class theRobot extends JFrame {
         if (mundo.grid[y][x+1] == 0) {actual += "1";}
         else {actual += "0";}
         if (actual.equals(sonars)){
-            return sensorAccuracy;
+		System.out.println("Correct sensors");
+		return sensorAccuracy;
+	    
         }
         else{
             return (1-sensorAccuracy);
@@ -652,7 +654,7 @@ public class theRobot extends JFrame {
             for (int x = 0; x < mundo.width; x++) {
                 if (mundo.grid[x][y] == 0){
                     int state_y = state_id[x][y];
-		    double temp_sum = 0
+		    double temp_sum = 0;
                     for (int j = 0; j < state_id.length; j++) {
                     	temp_sum += actionMap.get(action)[state_y][j] * probs[x][y];
 		    }
@@ -675,7 +677,7 @@ public class theRobot extends JFrame {
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
                 //probs[x][y] = (1/normalization) * probs[x][y];
-		a = 1
+		continue;
             }
         }
 
