@@ -265,6 +265,8 @@ public class theRobot extends JFrame {
     double[][] up;
     double[][] down;
     int[][] state_id;
+    Map<Integer, int[]> state_coord;
+    Map<int[], Integer> coord_to_id;
 
     Color bkgroundColor = new Color(230,230,230);
 
@@ -312,6 +314,11 @@ public class theRobot extends JFrame {
         */
         int state_count = 0;
 
+        state_coord = new HashMap<Integer,int[]>();
+        coord_to_id = new HashMap<int[], Integer>();
+
+
+
         // State table. Recreate the mundo world with the integer to represent the name of the state
         state_id = new int[mundo.height][mundo.width];
         // Find out how many States we have
@@ -320,13 +327,21 @@ public class theRobot extends JFrame {
                 if (mundo.grid[x][y] == 0) {
                     // Assigning IDs to each state from top left to bottem right
                     state_id[x][y] = state_count;
+                    int[] coord = new int[2];
+                    coord[0] = x;
+                    coord[1] = y;
+                    state_coord.put(state_count, coord);
+
                     state_count++;
+
                 }
                 else {
                     state_id[x][y] = -1;
                 }
             }
         }
+
+
 
         double robot_move_assurance = moveProb;
 
@@ -653,33 +668,52 @@ public class theRobot extends JFrame {
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
                 if (mundo.grid[x][y] == 0){
-                    int state_y = state_id[x][y];
-		    double temp_sum = 0;
+                    System.out.println("HERE");
+                    int id = state_id[x][y];
+                    System.out.println("State ID: " + id);
                     for (int j = 0; j < state_id.length; j++) {
-                    	temp_sum += actionMap.get(action)[state_y][j] * probs[x][y];
-		    }
-		    probs[x][y] = temp_sum;
+
+                        double action_prob = actionMap.get(action)[j][id];
+                        double temp_sum = 0;
+                        System.out.println("Action Prob: " + action_prob);
+                        if (action_prob != 0) {
+                            System.out.println("State ID : " + state_id[j][id]);
+                            if (state_id[j][id] != -1) {
+                                prettyPrintInt(state_id, "TEST");
+                                // prettyPrintInt(mundo, "MUNDO");
+                                int current_state_id = state_id[j][id];
+                                
+                                int new_x = state_coord.get(current_state_id)[0];
+                                int new_y = state_coord.get(current_state_id)[1];
+                                System.out.println("Coords: " + new_x + " " + new_y);
+                                temp_sum = action_prob * probs[x][y];
+                                System.out.println("Probs X Y: " + x + " " + y + " Value: " + probs[x][y]);
+                                System.out.println("Temp Sum: " + temp_sum);
+                                probs[new_x][new_y] = temp_sum;
+                            }
+     
+                        }     	
+		            }
                 }
             }
         }
         // Add in sensor data
-        double normalization = 0.0;
-        for (int y = 0; y < mundo.height; y++) {
-            for (int x = 0; x < mundo.width; x++) {
-                if (mundo.grid[x][y] == 0){
-                    double sonarProb = findProbOfSonar(x,y,sonars);
-                    normalization += sonarProb * probs[x][y];
-                    //probs[x][y] = sonarProb * probs[x][y];
-                }
-            }
-        }
+        // double normalization = 0.0;
+        // for (int y = 0; y < mundo.height; y++) {
+        //     for (int x = 0; x < mundo.width; x++) {
+        //         if (mundo.grid[x][y] == 0){
+        //             double sonarProb = findProbOfSonar(x,y,sonars);
+        //             normalization += sonarProb * probs[x][y];
+        //             probs[x][y] = sonarProb * probs[x][y];
+        //         }
+        //     }
+        // }
         // Add in normalization constant
-        for (int y = 0; y < mundo.height; y++) {
-            for (int x = 0; x < mundo.width; x++) {
-                //probs[x][y] = (1/normalization) * probs[x][y];
-		continue;
-            }
-        }
+        // for (int y = 0; y < mundo.height; y++) {
+        //     for (int x = 0; x < mundo.width; x++) {
+        //         probs[x][y] = (1/normalization) * probs[x][y];
+        //     }
+        // }
 
         prettyPrint(probs, "Update Probabilities");
 
@@ -754,6 +788,15 @@ public class theRobot extends JFrame {
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix.length; j++) {
                 System.out.printf("%.5f ",matrix[i][j]);
+            }
+            System.out.println();
+        }
+    }
+    public void prettyPrintInt(int[][] matrix, String functionName) {
+        System.out.println(functionName);
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix.length; j++) {
+                System.out.printf("%d ",matrix[i][j]);
             }
             System.out.println();
         }

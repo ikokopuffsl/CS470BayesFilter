@@ -1,0 +1,2 @@
+java BayesWorld mundo_maze.txt 0.9 0.8 unknown 
+java theRobot manual 0 
