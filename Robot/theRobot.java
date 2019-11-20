@@ -72,7 +72,7 @@ class mySmartMap extends JComponent implements KeyListener {
     public void updateProbs(double[][] _probs) {
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
-                probs[x][y] = _probs[x][y];
+                probs[x][y] = _probs[y][x]; // TODO can i switch this back to x y
             }
         }
         System.out.println("Update Probs");
@@ -104,7 +104,7 @@ class mySmartMap extends JComponent implements KeyListener {
     public void paintProbs(Graphics g) {
         double maxProbs = 0.0;
         int mx = 0, my = 0;
-        for (int y = 0; y < mundo.height; y++) {
+        for (int y = 0; y < mundo.height; y++) { // TODO need to fix all this??
             for (int x = 0; x < mundo.width; x++) {
                 if (probs[x][y] > maxProbs) {
                     maxProbs = probs[x][y];
@@ -504,10 +504,10 @@ public class theRobot extends JFrame {
             }
         }
 
-        prettyPrint(up, "Constructor - UP");
-        prettyPrint(right, "Constructor - RIGHT");
-        prettyPrint(down, "Constructor - DOWN");
-        prettyPrint(left, "Constructor - LEFT");
+        //prettyPrint(up, "Constructor - UP");
+        //prettyPrint(right, "Constructor - RIGHT");
+        //prettyPrint(down, "Constructor - DOWN");
+        //prettyPrint(left, "Constructor - LEFT");
 
 
         /*
@@ -651,43 +651,66 @@ public class theRobot extends JFrame {
             return (1-sensorAccuracy);
         }
     }
-
-    void ProbCalc(int x, int y, int action){
+    // public static final int NORTH = 0;
+    // public static final int SOUTH = 1;
+    // public static final int EAST = 2;
+    // public static final int WEST = 3;
+    // probs:
+    // [1][1] [1][2]
+    // [2][1] [2][2]
+    //mundo:
+    //[1][1] [1][2]
+    //[2][1] [2][2]
+    void ProbCalc(int x, int y, int action, double[][] probsCopy){
         // The probability left over from a square in a cross being a wall
         double extraProb = 0.0;
         // The probability that we do not move in a direction that is not the move dir
         double nonMoveProb = ((1-moveProb)/3);
         //Check to see if the square above [x][y] is empty
-        if(mundo.grid[x-1][y] == 0){ // up
+        //System.out.println("probsCopy[x][y]: [" + x + "] [" + y + "]");
+        // mundo.grid[1][2] = 9;
+        // prettyPrintInt(mundo.grid, "mundo");
+        // mundo.grid[1][2] = 0;
+        if(mundo.grid[x-1][y] == 0){ // up 0
             // if we are going up use action_prob, else use nonMovement
-            probs[x-1][y] += (action == 0 ? moveProb : nonMoveProb) * probs[x][y];
+            //System.out.println(probsCopy[x-1][y]);
+            probsCopy[x-1][y] += (action == 0 ? moveProb : nonMoveProb) * probsCopy[x][y];
+            //System.out.println(probsCopy[x-1][y]);
+            //prettyPrint(probsCopy, "probsCopy");
         }
         else{ // if the space above us is not clear
             // store nonMove if we are not moving up, else store moveProb
             extraProb += (action != 0 ? nonMoveProb : moveProb); // store relevant prob
+            //System.out.println("extraProb action 0: " + extraProb);
         }
 
-        if (mundo.grid[x][y+1] == 0){ // right
-            probs[x][y+1] += (action == 1 ? moveProb : nonMoveProb) * probs[x][y];
+        if (mundo.grid[x+1][y] == 0){ // down 1
+            probsCopy[x+1][y] += (action == 1 ? moveProb : nonMoveProb) * probsCopy[x][y];
         }
         else{
             extraProb += (action != 1 ? nonMoveProb : moveProb);
+            //System.out.println("extraProb action 1: " + extraProb);
         }
 
-        if (mundo.grid[x+1][y] == 0){ // down
-            probs[x+1][y] += (action == 2 ? moveProb : nonMoveProb) * probs[x][y];
+        if (mundo.grid[x][y+1] == 0){ // right 2
+            probsCopy[x][y+1] += (action == 2 ? moveProb : nonMoveProb) * probsCopy[x][y];
         }
         else{
             extraProb += (action != 2 ? nonMoveProb : moveProb);
+            //System.out.println("extraProb action 2: " + extraProb);
         }
 
-        if (mundo.grid[x][y-1] == 0){ // left
-            probs[x][y-1] += (action == 3 ? moveProb : nonMoveProb) * probs[x][y];
+        if (mundo.grid[x][y-1] == 0){ // left 3
+            probsCopy[x][y-1] += (action == 3 ? moveProb : nonMoveProb) * probsCopy[x][y];
         }
         else{
             extraProb += (action != 3 ? nonMoveProb : moveProb);
+            //System.out.println("extraProb action 3: " + extraProb);
         }
-        probs[x][y] = extraProb * probs[x][y];
+        
+        //System.out.println("extraProb: " + extraProb + " Prior: " + probsCopy[x][y]);
+        probsCopy[x][y] = extraProb * probsCopy[x][y]; 
+        //prettyPrint(probsCopy, "probsCopy2");
     }
 
 
@@ -697,39 +720,45 @@ public class theRobot extends JFrame {
     //       For example, the sonar string 1001, specifies that the sonars found a wall in the North and West directions, but not in the South and East directions
     void updateProbabilities(int action, String sonars) {
         // your code
+        //copy probs
+        double [][] probsCopy = new double[probs.length][probs[0].length];
+        for(int i = 0; i < probsCopy.length; i++){
+            for (int j = 0; j < probsCopy[0].length; j++){
+                probsCopy[i][j] = probs[i][j];
+            }
+        }
 
-        Map<Integer, double[][]> actionMap = new HashMap<Integer, double[][]>();
-        actionMap.put(0,up);
-        actionMap.put(1,down);
-        actionMap.put(2,right);
-        actionMap.put(3,left);
-
-        for (int y = 0; y < mundo.height; y++) {
-            for (int x = 0; x < mundo.width; x++) {
+        for (int x = 0; x < mundo.height; x++) {
+            for (int y = 0; y < mundo.width; y++) {
                 if (mundo.grid[x][y] == 0){
-                    ProbCalc(x, y, action);
+                    ProbCalc(x, y, action, probsCopy);
                 }
             }
         }
-        //Add in sensor data
-        double normalization = 0.0;
-        for (int y = 0; y < mundo.height; y++) {
-            for (int x = 0; x < mundo.width; x++) {
-                if (mundo.grid[x][y] == 0){
-                    double sonarProb = findProbOfSonar(x,y,sonars);
-                    normalization += sonarProb * probs[x][y];
-                    probs[x][y] = sonarProb * probs[x][y];
-                }
+        // //Add in sensor data
+        // double normalization = 0.0;
+        // for (int y = 0; y < mundo.height; y++) {
+        //     for (int x = 0; x < mundo.width; x++) {
+        //         if (mundo.grid[x][y] == 0){
+        //             double sonarProb = findProbOfSonar(x,y,sonars);
+        //             normalization += sonarProb * probsCopy[x][y];
+        //             probsCopy[x][y] = sonarProb * probsCopy[x][y];
+        //         }
+        //     }
+        // }
+        // //Add in normalization constant
+        // for (int y = 0; y < mundo.height; y++) {
+        //     for (int x = 0; x < mundo.width; x++) {
+        //         probsCopy[x][y] = (1/normalization) * probsCopy[x][y];
+        //     }
+        // }
+        //prettyPrint(probsCopy, "probsCopy");
+        for(int i = 0; i < probsCopy.length; i++){
+            for (int j = 0; j < probsCopy.length; j++){
+                probs[i][j] = probsCopy[i][j];
             }
         }
-        //Add in normalization constant
-        for (int y = 0; y < mundo.height; y++) {
-            for (int x = 0; x < mundo.width; x++) {
-                probs[x][y] = (1/normalization) * probs[x][y];
-            }
-        }
-
-        prettyPrint(probs, "Update Probabilities");
+        //prettyPrint(probs, "Update Probabilities");
 
         myMaps.updateProbs(probs); // call this function after updating your probabilities so that the
                                    //  new probabilities will show up in the probability map on the GUI
