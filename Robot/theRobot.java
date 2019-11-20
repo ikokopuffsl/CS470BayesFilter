@@ -504,23 +504,23 @@ public class theRobot extends JFrame {
             }
         }
         updateProbs(probsCopy);
-        prettyPrint(probs, "probs");
-        probsCopy = new double[probs.length][probs.length];
+        //prettyPrint(probs, "probs");
+        //probsCopy = new double[probs.length][probs.length];
         //Add in sensor data
         double normalization = 0.0;
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
                 if (mundo.grid[x][y] == 0){
                     double sonarProb = findProbOfSonar(x,y,sonars);
-                    System.out.println("SonarProb: " + sonarProb);
+                    //System.out.println("SonarProb: " + sonarProb);
                     normalization += sonarProb * probs[x][y];
-                    System.out.println("spot: " + probs[x][y]);
-                    probsCopy[x][y] += sonarProb * probs[x][y];
-                    prettyPrint(probsCopy, "probsCopy");
+                    //System.out.println("spot: " + probs[x][y]);
+                    probs[x][y] = sonarProb * probs[x][y];
+                    //prettyPrint(probsCopy, "probsCopy");
                 }
             }
         }
-        System.out.println("normal: " + normalization);
+        //System.out.println("normal: " + normalization);
        
         //probsCopy = new double[probs.length][probs.length];
         //Add in normalization constant
