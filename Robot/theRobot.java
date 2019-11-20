@@ -11,9 +11,6 @@ import java.io.*;
 import java.util.Random;
 import java.util.Scanner;
 import java.net.*;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Arrays;
 
 
 // This class draws the probability map and value iteration map that you create to the window
@@ -32,67 +29,60 @@ class mySmartMap extends JComponent implements KeyListener {
     Color gris = new Color(170,170,170);
     Color myWhite = new Color(220, 220, 220);
     World mundo;
-
+    
     int gameStatus;
 
     double[][] probs;
     double[][] vals;
-
+    
     public mySmartMap(int w, int h, World wld) {
         mundo = wld;
         probs = new double[mundo.width][mundo.height];
         vals = new double[mundo.width][mundo.height];
         winWidth = w;
         winHeight = h;
-
+        
         sqrWdth = (double)w / mundo.width;
         sqrHght = (double)h / mundo.height;
         currentKey = -1;
-
+        
         addKeyListener(this);
-
+        
         gameStatus = 0;
     }
-
+    
     public void addNotify() {
         super.addNotify();
         requestFocus();
     }
-
+    
     public void setWin() {
         gameStatus = 1;
         repaint();
     }
-
+    
     public void setLoss() {
         gameStatus = 2;
         repaint();
     }
-
+    
     public void updateProbs(double[][] _probs) {
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
-                probs[x][y] = _probs[y][x]; // TODO can i switch this back to x y
+                probs[x][y] = _probs[x][y];
             }
         }
-        System.out.println("Update Probs");
-        for (int i = 0; i < mundo.height; i++) {
-            for (int j = 0; j < mundo.width; j++) {
-                System.out.printf("%.5f ",_probs[i][j]);
-            }
-            System.out.println();
-        }
-
+        
         repaint();
     }
-
+    
     public void updateValues(double[][] _vals) {
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
                 vals[x][y] = _vals[x][y];
             }
         }
-
+        
         repaint();
     }
 
@@ -104,7 +94,7 @@ class mySmartMap extends JComponent implements KeyListener {
     public void paintProbs(Graphics g) {
         double maxProbs = 0.0;
         int mx = 0, my = 0;
-        for (int y = 0; y < mundo.height; y++) { // TODO need to fix all this??
+        for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
                 if (probs[x][y] > maxProbs) {
                     maxProbs = probs[x][y];
@@ -117,7 +107,7 @@ class mySmartMap extends JComponent implements KeyListener {
                 }
                 else if (mundo.grid[x][y] == 0) {
                     //g.setColor(myWhite);
-
+                    
                     int col = (int)(255 * Math.sqrt(probs[x][y]));
                     if (col > 255)
                         col = 255;
@@ -132,7 +122,7 @@ class mySmartMap extends JComponent implements KeyListener {
                     g.setColor(Color.green);
                     g.fillRect((int)(x * sqrWdth), (int)(y * sqrHght), (int)sqrWdth, (int)sqrHght);
                 }
-
+            
             }
             if (y != 0) {
                 g.setColor(gris);
@@ -143,12 +133,12 @@ class mySmartMap extends JComponent implements KeyListener {
                 g.setColor(gris);
                 g.drawLine((int)(x * sqrWdth), 0, (int)(x * sqrWdth), (int)winHeight);
         }
-
+        
         //System.out.println("repaint maxProb: " + maxProbs + "; " + mx + ", " + my);
-
+        
         g.setColor(Color.green);
         g.drawOval((int)(mx * sqrWdth)+1, (int)(my * sqrHght)+1, (int)(sqrWdth-1.4), (int)(sqrHght-1.4));
-
+        
         if (gameStatus == 1) {
             g.setColor(Color.green);
             g.drawString("You Won!", 8, 25);
@@ -158,16 +148,16 @@ class mySmartMap extends JComponent implements KeyListener {
             g.drawString("You're a Loser!", 8, 25);
         }
     }
-
+    
     public void paintValues(Graphics g) {
         double maxVal = -99999, minVal = 99999;
         int mx = 0, my = 0;
-
+        
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
                 if (mundo.grid[x][y] != 0)
                     continue;
-
+                
                 if (vals[x][y] > maxVal)
                     maxVal = vals[x][y];
                 if (vals[x][y] < minVal)
@@ -187,7 +177,7 @@ class mySmartMap extends JComponent implements KeyListener {
                 }
                 else if (mundo.grid[x][y] == 0) {
                     //g.setColor(myWhite);
-
+                    
                     //int col = (int)(255 * Math.sqrt((vals[x][y]-minVal)/(maxVal-minVal)));
                     int col = (int)(255 * (vals[x][y]-minVal)/(maxVal-minVal));
                     if (col > 255)
@@ -203,7 +193,7 @@ class mySmartMap extends JComponent implements KeyListener {
                     g.setColor(Color.green);
                     g.fillRect((int)(x * sqrWdth)+offset, (int)(y * sqrHght), (int)sqrWdth, (int)sqrHght);
                 }
-
+            
             }
             if (y != 0) {
                 g.setColor(gris);
@@ -216,7 +206,7 @@ class mySmartMap extends JComponent implements KeyListener {
         }
     }
 
-
+    
     public void keyPressed(KeyEvent e) {
         //System.out.println("keyPressed");
     }
@@ -226,7 +216,7 @@ class mySmartMap extends JComponent implements KeyListener {
     public void keyTyped(KeyEvent e) {
         char key = e.getKeyChar();
         //System.out.println(key);
-
+        
         switch (key) {
             case 'i':
                 currentKey = NORTH;
@@ -247,7 +237,6 @@ class mySmartMap extends JComponent implements KeyListener {
     }
 }
 
-
 // This is the main class that you will add to in order to complete the lab
 public class theRobot extends JFrame {
     // Mapping of actions to integers
@@ -257,44 +246,32 @@ public class theRobot extends JFrame {
     public static final int WEST = 3;
     public static final int STAY = 4;
 
-    /*
-    * Added the look up tables for the probabilities
-    */
-    double[][] left;
-    double[][] right;
-    double[][] up;
-    double[][] down;
-    int[][] state_id;
-    Map<Integer, int[]> state_coord;
-    Map<int[], Integer> coord_to_id;
-
     Color bkgroundColor = new Color(230,230,230);
-
+    
     static mySmartMap myMaps; // instance of the class that draw everything to the GUI
     String mundoName;
-
+    
     World mundo; // mundo contains all the information about the world.  See World.java
     double moveProb, sensorAccuracy;  // stores probabilies that the robot moves in the intended direction
                                       // and the probability that a sonar reading is correct, respectively
-
+    
     // variables to communicate with the Server via sockets
     public Socket s;
 	public BufferedReader sin;
 	public PrintWriter sout;
-
+    
     // variables to store information entered through the command-line about the current scenario
     boolean isManual = false; // determines whether you (manual) or the AI (automatic) controls the robots movements
     boolean knownPosition = false;
     int startX = -1, startY = -1;
     int decisionDelay = 250;
-
+    
     // store your probability map (for position of the robot in this array
     double[][] probs;
-
+    
     // store your computed value of being in each state (x, y)
     double[][] Vs;
-
-
+    
     public theRobot(String _manual, int _decisionDelay) {
         // initialize variables as specified from the command-line
         if (_manual.equals("automatic"))
@@ -302,220 +279,13 @@ public class theRobot extends JFrame {
         else
             isManual = true;
         decisionDelay = _decisionDelay;
-
+        
         // get a connection to the server and get initial information about the world
         initClient();
-
+    
         // Read in the world
         mundo = new World(mundoName);
-
-        /*
-        * Create the look up tables for the probabilities of each state for each direction
-        */
-        int state_count = 0;
-
-        state_coord = new HashMap<Integer,int[]>();
-        coord_to_id = new HashMap<int[], Integer>();
-
-
-
-        // State table. Recreate the mundo world with the integer to represent the name of the state
-        state_id = new int[mundo.height][mundo.width];
-        // Find out how many States we have
-        for (int y = 0; y < mundo.height; y++) {
-            for (int x = 0; x < mundo.width; x++) {
-                if (mundo.grid[x][y] == 0) {
-                    // Assigning IDs to each state from top left to bottem right
-                    state_id[x][y] = state_count;
-                    int[] coord = new int[2];
-                    coord[0] = x;
-                    coord[1] = y;
-                    state_coord.put(state_count, coord);
-
-                    state_count++;
-
-                }
-                else {
-                    state_id[x][y] = -1;
-                }
-            }
-        }
-
-
-
-        double robot_move_assurance = moveProb;
-
-        left = new double[state_count][state_count];
-        right = new double[state_count][state_count];
-        up = new double[state_count][state_count];
-        down = new double[state_count][state_count];
-
-        // Each row is a state and the row array represent the probability we will go to the state i given we are at the current state (row index)
-        // Create the 4 look up tables
-        for (int t = 0; t < 4; t++) {                               // The four tables
-            int probability_index = 0;
-            for(int y = 0; y < mundo.height; y++) {
-                for (int x = 0; x < mundo.width; x++) {
-                    if (mundo.grid[x][y] == 0) {                    // If it is a possible state
-                        double[] temp_probability = new double[state_count];
-                        double non_robot_move = (1 - robot_move_assurance) / 3;
-                        if (t == 0) { // Tells us Robot Direction - UP
-                            // Edge Cases Included
-                            if (x == 0 || state_id[x-1][y] == -1) { // Wall - UP
-                                temp_probability[state_id[x][y]] += robot_move_assurance; // Add the probability of robot to current spot
-
-                            }
-                            else {
-                                temp_probability[state_id[x-1][y]] += robot_move_assurance;
-                            }
-                            if (y == (state_count - 1) || state_id[x][y+1] == -1) { // Wall- RIGHT
-                                temp_probability[state_id[x][y]] += non_robot_move;
-                            }
-                            else {
-                                temp_probability[state_id[x][y+1]] += non_robot_move;
-                            }
-                            if ( x == (state_count - 1) || state_id[x+1][y] == -1) { // Wall - DOWN
-                                temp_probability[state_id[x][y]] += non_robot_move;
-                            }
-                            else {
-                                temp_probability[state_id[x+1][y]] += non_robot_move;
-                            }
-                            if (y == 0 || state_id[x][y-1] == -1) { // Wall - LEFT
-                                temp_probability[state_id[x][y]] += non_robot_move;
-                            }
-                            else {
-                                temp_probability[state_id[x][y-1]] += non_robot_move;
-                            }
-                        }
-                        if (t == 1) { // Tells us Robot Direction - RIGHT
-                            if (x == 0 || state_id[x-1][y] == -1) { // Wall - UP
-                                temp_probability[state_id[x][y]] += non_robot_move;
-                            }
-                            else {
-                                temp_probability[state_id[x-1][y]] += non_robot_move;
-                            }
-                            if (y == (state_count - 1) || state_id[x][y+1] == -1) { // Wall- RIGHT
-                                temp_probability[state_id[x][y]] += robot_move_assurance;
-                            }
-                            else {
-                                temp_probability[state_id[x][y+1]] += robot_move_assurance;
-                            }
-                            if (x == (state_count - 1) || state_id[x+1][y] == -1) { // Wall - DOWN
-                                temp_probability[state_id[x][y]] += non_robot_move;
-                            }
-                            else {
-                                temp_probability[state_id[x+1][y]] += non_robot_move;
-                            }
-                            if (y == 0 || state_id[x][y-1] == -1) { // Wall - LEFT
-                                temp_probability[state_id[x][y]] += non_robot_move;
-                            }
-                            else {
-                                temp_probability[state_id[x][y-1]] += non_robot_move;
-                            }
-                        }
-                        if (t == 2) { // Tells us Robot Direction - DOWN
-                            if (x == 0 || state_id[x-1][y] == -1) { // Wall - UP
-                                temp_probability[state_id[x][y]] += non_robot_move;
-                            }
-                            else {
-                                temp_probability[state_id[x-1][y]] += non_robot_move;
-                            }
-                            if (y == (state_count - 1) || state_id[x][y+1] == -1) { // Wall- RIGHT
-                                temp_probability[state_id[x][y]] += non_robot_move;
-                            }
-                            else {
-                                temp_probability[state_id[x][y+1]] += non_robot_move;
-                            }
-                            if (y == (state_count - 1) || state_id[x+1][y] == -1) { // Wall - DOWN
-                                temp_probability[state_id[x][y]] += robot_move_assurance;
-                            }
-                            else {
-                                temp_probability[state_id[x+1][y]] += robot_move_assurance;
-                            }
-                            if (y == 0 || state_id[x][y-1] == -1) { // Wall - LEFT
-                                temp_probability[state_id[x][y]] += non_robot_move;
-                            }
-                            else {
-                                temp_probability[state_id[x][y-1]] += non_robot_move;
-                            }
-                        }
-                        if (t == 3) { // Tells us Robot Direction - LEFT
-                            if (x == 0 || state_id[x-1][y] == -1) { // Wall - UP
-                                temp_probability[state_id[x][y]] += non_robot_move;
-                            }
-                            else {
-                                temp_probability[state_id[x-1][y]] += non_robot_move;
-                            }
-                            if (y == (state_count - 1) || state_id[x][y+1] == -1) { // Wall- RIGHT
-                                temp_probability[state_id[x][y]] += non_robot_move;
-                            }
-                            else {
-                                temp_probability[state_id[x][y+1]] += non_robot_move;
-                            }
-                            if (x == (state_count - 1) || state_id[x+1][y] == -1) { // Wall - DOWN
-                                temp_probability[state_id[x][y]] += non_robot_move;
-                            }
-                            else {
-                                temp_probability[state_id[x+1][y]] += non_robot_move;
-                            }
-                            if (y == 0 || state_id[x][y-1] == -1) { // Wall - LEFT
-                                temp_probability[state_id[x][y]] += robot_move_assurance;
-                            }
-                            else {
-                                temp_probability[state_id[x][y-1]] += robot_move_assurance;
-                            }
-                        }
-
-                        // Fill in each table, but need to fix so it is not based on y, it should be based on count
-                        if (t == 0) {
-                            // System.out.println("New Update on UP");
-                            for (int i = 0; i < state_count; i++) {
-                                // System.out.print(temp_probability[i] + " ");
-                                up[i][probability_index] = temp_probability[i];
-                            }
-                            // System.out.println();
-                        }
-                        if (t == 1) {
-                            // System.out.println("New Update on RIGHT");
-                            for (int i = 0; i < state_count; i++) {
-                                // System.out.print(temp_probability[i] + " ");
-                                right[i][probability_index] = temp_probability[i];
-                            }
-                            // System.out.println();
-                        }
-                        if (t == 2) {
-                            // System.out.println("New Update on DOWN");
-                            for (int i = 0; i < state_count; i++) {
-                                // System.out.print(temp_probability[i] + " ");
-                                down[i][probability_index] = temp_probability[i];
-                            }
-                            // System.out.println();
-                        }
-                        if (t == 3) {
-                            for (int i = 0; i < state_count; i++) {
-                                left[i][probability_index] = temp_probability[i];
-                            }
-                            // System.out.println();
-                        }
-                        probability_index++;
-                    }
-
-                }
-            }
-        }
-
-        //prettyPrint(up, "Constructor - UP");
-        //prettyPrint(right, "Constructor - RIGHT");
-        //prettyPrint(down, "Constructor - DOWN");
-        //prettyPrint(left, "Constructor - LEFT");
-
-
-        /*
-        * End of Addition
-        */
-
-
-
+        
         // set up the GUI that displays the information you compute
         int width = 500;
         int height = 500;
@@ -526,13 +296,13 @@ public class theRobot extends JFrame {
         setBounds(0, 0, width, height+bar);
         myMaps = new mySmartMap(width, height, mundo);
         getContentPane().add(myMaps);
-
+        
         setVisible(true);
         setTitle("Probability and Value Maps");
-
+        
         doStuff(); // Function to have the robot move about its world until it gets to its goal or falls in a stairwell
     }
-
+    
     // this function establishes a connection with the server and learns
     //   1 -- which world it is in
     //   2 -- it's transition model (specified by moveProb)
@@ -541,19 +311,19 @@ public class theRobot extends JFrame {
     public void initClient() {
         int portNumber = 3333;
         String host = "localhost";
-
+        
         try {
 			s = new Socket(host, portNumber);
             sout = new PrintWriter(s.getOutputStream(), true);
 			sin = new BufferedReader(new InputStreamReader(s.getInputStream()));
-
+            
             mundoName = sin.readLine();
             moveProb = Double.parseDouble(sin.readLine());
             sensorAccuracy = Double.parseDouble(sin.readLine());
             System.out.println("Need to open the mundo: " + mundoName);
             System.out.println("moveProb: " + moveProb);
             System.out.println("sensorAccuracy: " + sensorAccuracy);
-
+            
             // find out of the robots position is know
             String _known = sin.readLine();
             if (_known.equals("known")) {
@@ -588,12 +358,12 @@ public class theRobot extends JFrame {
         }
         int a = myMaps.currentKey;
         myMaps.currentKey = -1;
-
-        System.out.println("Action: " + a + " ");
-
+        
+        System.out.println("Action: " + a);
+        
         return a;
     }
-
+    
     // initializes the probabilities of where the AI is
     void initializeProbabilities() {
         probs = new double[mundo.width][mundo.height];
@@ -610,14 +380,14 @@ public class theRobot extends JFrame {
         }
         else {  // otherwise, set up a uniform prior over all the positions in the world that are open spaces
             int count = 0;
-
+            
             for (int y = 0; y < mundo.height; y++) {
                 for (int x = 0; x < mundo.width; x++) {
                     if (mundo.grid[x][y] == 0)
                         count++;
                 }
             }
-
+            
             for (int y = 0; y < mundo.height; y++) {
                 for (int x = 0; x < mundo.width; x++) {
                     if (mundo.grid[x][y] == 0)
@@ -627,28 +397,27 @@ public class theRobot extends JFrame {
                 }
             }
         }
-
-        prettyPrint(probs, "Initialize Probabilities");
-
-
+        
         myMaps.updateProbs(probs);
     }
+    //For example, the sonar string 1001, specifies that the sonars found a wall in the North and West directions, but not in the South and East directions
     double findProbOfSonar(int x, int y,String sonars){
         String actual = "";
-        if (mundo.grid[x-1][y] == 0) {actual += "1";}//up
+        if (mundo.grid[x][y-1] != 0) {actual += "1";}//up
         else {actual += "0";}
-        if (mundo.grid[x][y-1] == 0) {actual += "1";}//left
+        if (mundo.grid[x][y+1] != 0) {actual += "1";}//down
         else {actual += "0";}
-        if (mundo.grid[x+1][y] == 0) {actual += "1";}//down
+        if (mundo.grid[x+1][y] != 0) {actual += "1";}//right
         else {actual += "0";}
-        if (mundo.grid[x][y+1] == 0) {actual += "1";}//right
+        if (mundo.grid[x-1][y] != 0) {actual += "1";}//left
         else {actual += "0";}
+        System.out.println("Reported vs Correct sonar: " + sonars + " " + actual);
         if (actual.equals(sonars)){
 		    System.out.println("Correct sensors");
 		    return sensorAccuracy;
         }
         else{
-            return (1-sensorAccuracy);
+            return (1-sensorAccuracy)/(mundo.width * mundo.height);
         }
     }
     // public static final int NORTH = 0;
@@ -667,14 +436,11 @@ public class theRobot extends JFrame {
         // The probability that we do not move in a direction that is not the move dir
         double nonMoveProb = ((1-moveProb)/3);
         //Check to see if the square above [x][y] is empty
-        //System.out.println("probsCopy[x][y]: [" + x + "] [" + y + "]");
-        // mundo.grid[1][2] = 9;
-        // prettyPrintInt(mundo.grid, "mundo");
-        // mundo.grid[1][2] = 0;
-        if(mundo.grid[x-1][y] == 0){ // up 0
+        //System.out.println("\nprobsCopy[x][y]: [" + x + "] [" + y + "]");
+        if(mundo.grid[x][y-1] == 0){ // up 0
             // if we are going up use action_prob, else use nonMovement
             //System.out.println(probsCopy[x-1][y]);
-            probsCopy[x-1][y] += (action == 0 ? moveProb : nonMoveProb) * probsCopy[x][y];
+            probsCopy[x][y-1] += (action == 0 ? moveProb : nonMoveProb) * probs[x][y];
             //System.out.println(probsCopy[x-1][y]);
             //prettyPrint(probsCopy, "probsCopy");
         }
@@ -684,36 +450,42 @@ public class theRobot extends JFrame {
             //System.out.println("extraProb action 0: " + extraProb);
         }
 
-        if (mundo.grid[x+1][y] == 0){ // down 1
-            probsCopy[x+1][y] += (action == 1 ? moveProb : nonMoveProb) * probsCopy[x][y];
+        if (mundo.grid[x][y+1] == 0){ // down 1
+            probsCopy[x][y+1] += (action == 1 ? moveProb : nonMoveProb) * probs[x][y];
         }
         else{
             extraProb += (action != 1 ? nonMoveProb : moveProb);
             //System.out.println("extraProb action 1: " + extraProb);
         }
 
-        if (mundo.grid[x][y+1] == 0){ // right 2
-            probsCopy[x][y+1] += (action == 2 ? moveProb : nonMoveProb) * probsCopy[x][y];
+        if (mundo.grid[x+1][y] == 0){ // right 2
+            probsCopy[x+1][y] += (action == 2 ? moveProb : nonMoveProb) * probs[x][y];
         }
         else{
             extraProb += (action != 2 ? nonMoveProb : moveProb);
             //System.out.println("extraProb action 2: " + extraProb);
         }
 
-        if (mundo.grid[x][y-1] == 0){ // left 3
-            probsCopy[x][y-1] += (action == 3 ? moveProb : nonMoveProb) * probsCopy[x][y];
+        if (mundo.grid[x-1][y] == 0){ // left 3
+            probsCopy[x-1][y] += (action == 3 ? moveProb : nonMoveProb) * probs[x][y];
         }
         else{
             extraProb += (action != 3 ? nonMoveProb : moveProb);
             //System.out.println("extraProb action 3: " + extraProb);
         }
         
-        //System.out.println("extraProb: " + extraProb + " Prior: " + probsCopy[x][y]);
-        probsCopy[x][y] = extraProb * probsCopy[x][y]; 
+        //System.out.println("extraProb: " + extraProb + " Prior: " + probs[x][y]);
+        probsCopy[x][y] += extraProb * probs[x][y]; 
         //prettyPrint(probsCopy, "probsCopy2");
     }
 
-
+    void updateProbs(double[][] probsCopy){
+        for(int i = 0; i < probsCopy.length; i++){
+            for (int j = 0; j < probsCopy.length; j++){
+                probs[i][j] = probsCopy[i][j];
+            }
+        }
+    }
     // TODO: update the probabilities of where the AI thinks it is based on the action selected and the new sonar readings
     //       To do this, you should update the 2D-array "probs"
     // Note: sonars is a bit string with four characters, specifying the sonar reading in the direction of North, South, East, and West
@@ -721,45 +493,46 @@ public class theRobot extends JFrame {
     void updateProbabilities(int action, String sonars) {
         // your code
         //copy probs
-        double [][] probsCopy = new double[probs.length][probs[0].length];
-        for(int i = 0; i < probsCopy.length; i++){
-            for (int j = 0; j < probsCopy[0].length; j++){
-                probsCopy[i][j] = probs[i][j];
-            }
-        }
-
-        for (int x = 0; x < mundo.height; x++) {
-            for (int y = 0; y < mundo.width; y++) {
+         double[][] probsCopy = new double[probs.length][probs.length];
+        //prettyPrint(probs, "probs");
+        //prettyPrint(probsCopy, "probsCopy");
+        for (int y = 0; y < mundo.height; y++) {
+            for (int x = 0; x < mundo.width; x++) {
                 if (mundo.grid[x][y] == 0){
                     ProbCalc(x, y, action, probsCopy);
                 }
             }
         }
-        // //Add in sensor data
-        // double normalization = 0.0;
-        // for (int y = 0; y < mundo.height; y++) {
-        //     for (int x = 0; x < mundo.width; x++) {
-        //         if (mundo.grid[x][y] == 0){
-        //             double sonarProb = findProbOfSonar(x,y,sonars);
-        //             normalization += sonarProb * probsCopy[x][y];
-        //             probsCopy[x][y] = sonarProb * probsCopy[x][y];
-        //         }
-        //     }
-        // }
-        // //Add in normalization constant
-        // for (int y = 0; y < mundo.height; y++) {
-        //     for (int x = 0; x < mundo.width; x++) {
-        //         probsCopy[x][y] = (1/normalization) * probsCopy[x][y];
-        //     }
-        // }
-        //prettyPrint(probsCopy, "probsCopy");
-        for(int i = 0; i < probsCopy.length; i++){
-            for (int j = 0; j < probsCopy.length; j++){
-                probs[i][j] = probsCopy[i][j];
+        updateProbs(probsCopy);
+        prettyPrint(probs, "probs");
+        probsCopy = new double[probs.length][probs.length];
+        //Add in sensor data
+        double normalization = 0.0;
+        for (int y = 0; y < mundo.height; y++) {
+            for (int x = 0; x < mundo.width; x++) {
+                if (mundo.grid[x][y] == 0){
+                    double sonarProb = findProbOfSonar(x,y,sonars);
+                    System.out.println("SonarProb: " + sonarProb);
+                    normalization += sonarProb * probs[x][y];
+                    System.out.println("spot: " + probs[x][y]);
+                    probsCopy[x][y] += sonarProb * probs[x][y];
+                    prettyPrint(probsCopy, "probsCopy");
+                }
             }
         }
+        System.out.println("normal: " + normalization);
+       
+        //probsCopy = new double[probs.length][probs.length];
+        //Add in normalization constant
+        for (int y = 0; y < mundo.height; y++) {
+            for (int x = 0; x < mundo.width; x++) {
+                probs[x][y] = (1/normalization) * probs[x][y];
+            }
+        }
+        //prettyPrint(probsCopy, "probsCopy");
+        
         //prettyPrint(probs, "Update Probabilities");
-
+        updateProbs(probsCopy);
         myMaps.updateProbs(probs); // call this function after updating your probabilities so that the
                                    //  new probabilities will show up in the probability map on the GUI
     }
@@ -767,35 +540,32 @@ public class theRobot extends JFrame {
     // This is the function you'd need to write to make the robot move using your AI;
     // You do NOT need to write this function for this lab; it can remain as is
     int automaticAction() {
-
+        
         return STAY;  // default action for now
     }
-
+    
     void doStuff() {
-
         int action;
-
+        
         //valueIteration();  // TODO: function you will write in Part II of the lab
         initializeProbabilities();  // Initializes the location (probability) map
-
+        
         while (true) {
             try {
-                if (isManual) {
+                if (isManual)
                     action = getHumanAction();  // get the action selected by the user (from the keyboard)
-                    System.out.println(action);
-                }
                 else
                     action = automaticAction(); // TODO: get the action selected by your AI;
                                                 // you'll need to write this function for part III
-
+                
                 sout.println(action); // send the action to the Server
-
+                
                 // get sonar readings after the robot moves
                 String sonars = sin.readLine();
                 //System.out.println("Sonars: " + sonars);
-
+            
                 updateProbabilities(action, sonars); // TODO: this function should update the probabilities of where the AI thinks it is
-
+                
                 if (sonars.length() > 4) {  // check to see if the robot has reached its goal or fallen down stairs
                     if (sonars.charAt(4) == 'w') {
                         System.out.println("I won!");
@@ -824,8 +594,7 @@ public class theRobot extends JFrame {
             }
         }
     }
-
-
+    
     public void prettyPrint(double[][] matrix, String functionName) {
         System.out.println(functionName);
         for (int i = 0; i < matrix.length; i++) {
