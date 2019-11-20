@@ -340,7 +340,10 @@ public class theRobot extends JFrame {
                 }
             }
         }
-
+        System.out.println("State ID to Coord");
+        for (Map.Entry<Integer, int[]> entry : state_coord.entrySet()) {
+            System.out.println(entry.getKey() + ":" + entry.getValue()[0] + " " + entry.getValue()[1]);
+        }
 
 
         double robot_move_assurance = moveProb;
@@ -668,29 +671,28 @@ public class theRobot extends JFrame {
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
                 if (mundo.grid[x][y] == 0){
-                    System.out.println("HERE");
+                    System.out.println("Valid State");
                     int id = state_id[x][y];
-                    System.out.println("State ID: " + id);
+                    System.out.println("ID of the State We Are Calcuating From: " + id);
                     for (int j = 0; j < state_id.length; j++) {
-
                         double action_prob = actionMap.get(action)[j][id];
                         double temp_sum = 0;
-                        System.out.println("Action Prob: " + action_prob);
+                        System.out.println("Column Value For S" + id + " at Ps" + j + " : " + action_prob);
+                        // if (j == id) {
+                        //     System.out.println("J == ID");
+                        //     int cross_coordinate_X = state_coord.get(j)[0];
+                        //     int cross_coordinate_Y= state_coord.get(j)[1];
+                        //     temp_sum = action_prob * probs[x][y];
+                        //     probs[cross_coordinate_Y][cross_coordinate_X] = temp_sum;
+                        // }
                         if (action_prob != 0) {
-                            System.out.println("State ID : " + state_id[j][id]);
-                            if (state_id[j][id] != -1) {
-                                prettyPrintInt(state_id, "TEST");
-                                // prettyPrintInt(mundo, "MUNDO");
-                                int current_state_id = state_id[j][id];
-                                
-                                int new_x = state_coord.get(current_state_id)[0];
-                                int new_y = state_coord.get(current_state_id)[1];
-                                System.out.println("Coords: " + new_x + " " + new_y);
-                                temp_sum = action_prob * probs[x][y];
-                                System.out.println("Probs X Y: " + x + " " + y + " Value: " + probs[x][y]);
-                                System.out.println("Temp Sum: " + temp_sum);
-                                probs[new_x][new_y] = temp_sum;
-                            }
+                            System.out.println("Map Coordinates of One of the Crosses : " + state_coord.get(j)[0] + " " + state_coord.get(j)[1]);
+                            int cross_coordinate_X = state_coord.get(j)[0];
+                            int cross_coordinate_Y= state_coord.get(j)[1];
+                            temp_sum = action_prob * probs[x][y];
+                            System.out.println("Prior Prob of X Y: " + x + " " + y + " Value: " + probs[x][y]);
+                            System.out.println("New Probability Addition: " + temp_sum);
+                            probs[cross_coordinate_Y][cross_coordinate_X] += temp_sum;
      
                         }     	
 		            }
