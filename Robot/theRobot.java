@@ -7,7 +7,13 @@ import java.awt.Graphics;
 import java.lang.*;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+
+//import sun.tools.tree.Vset;
+
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Random;
 import java.util.Scanner;
 import java.net.*;
@@ -245,6 +251,8 @@ public class theRobot extends JFrame {
     public static final int EAST = 2;
     public static final int WEST = 3;
     public static final int STAY = 4;
+    public static final int GOAL_REWARD = 100;
+    public static final int STAIRS_REWARD = -20;
 
     Color bkgroundColor = new Color(230,230,230);
     
@@ -265,12 +273,13 @@ public class theRobot extends JFrame {
     boolean knownPosition = false;
     int startX = -1, startY = -1;
     int decisionDelay = 250;
+    double beliefInFuture = 0.9;
     
     // store your probability map (for position of the robot in this array
     double[][] probs;
     
-    // store your computed value of being in each state (x, y)
-    double[][] Vs;
+    // store your utils for lab 4
+    double[][] utils;
     
     public theRobot(String _manual, int _decisionDelay) {
         // initialize variables as specified from the command-line
@@ -299,10 +308,10 @@ public class theRobot extends JFrame {
         
         setVisible(true);
         setTitle("Probability and Value Maps");
-        
+        initUtils();
         doStuff(); // Function to have the robot move about its world until it gets to its goal or falls in a stairwell
     }
-    
+
     // this function establishes a connection with the server and learns
     //   1 -- which world it is in
     //   2 -- it's transition model (specified by moveProb)
@@ -363,7 +372,77 @@ public class theRobot extends JFrame {
         
         return a;
     }
-    
+
+    // Create the utils array and fill it
+    public void initUtils(){
+        utils = new double[mundo.width][mundo.height];
+        for (int y = 0; y < mundo.height; y++) {
+            for (int x = 0; x < mundo.width; x++) {
+                utils[x][y] = 0.0;
+                if (mundo.grid[x][y] != 1){
+                    if (mundo.grid[x][y] == 3){
+                        utils[x][y] = GOAL_REWARD;
+                    }
+                    else if(mundo.grid[x][y] == 2){
+                        utils[x][y] = STAIRS_REWARD;
+                    }
+                }
+            }
+        }
+        prettyPrint(utils, "Utility graph Start");
+        stabilizeUtils();
+        System.exit(0);
+    }
+
+    public void stabilizeUtils(){
+        boolean keepGoing = true;
+        while (keepGoing){
+            for (int y = 0; y < mundo.height; y++) {
+                for (int x = 0; x < mundo.width; x++) {
+                    if(mundo.grid[x][y] != 1){
+                        double old_util = utils[x][y];
+                        utils[x][y] = utils[x][y] + beliefInFuture * (getMaxUtilState(x, y));
+                        prettyPrint(utils, "Utility graph");
+                        //Check if we have stablized the reward matrix
+                        if (Math.abs(old_util - utils[x][y]) < 0.001){
+                            keepGoing = false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // public static final int NORTH = 0;
+    // public static final int SOUTH = 1;
+    // public static final int EAST = 2;
+    // public static final int WEST = 3;
+    public double getMaxUtilState(int x, int y){
+        double nonMoveProb = ((1-moveProb)/3);
+        ArrayList maxList = new ArrayList();
+        for (int i = 0; i < 4; i++) {
+            ArrayList utilsList = new ArrayList<>();
+            if(mundo.grid[x][y-1] != 1){ // up 0
+                utilsList.add((i == 0 ? moveProb : nonMoveProb) * utils[x][y]);
+            }
+            if (mundo.grid[x][y+1] != 1){ // down 1
+                utilsList.add((i == 1 ? moveProb : nonMoveProb) * utils[x][y]);
+            }
+            if (mundo.grid[x+1][y] != 1){ // right 2
+                utilsList.add((i == 2 ? moveProb : nonMoveProb) * utils[x][y]);
+            }
+            if (mundo.grid[x-1][y] != 1){ // left 3
+                utilsList.add((i == 3 ? moveProb : nonMoveProb) * utils[x][y]);
+            }
+            System.out.println("Move: " + i + " utilsList: " + utilsList.toString());
+            Collections.sort(utilsList);
+            maxList.add(utilsList.get(utilsList.size() - 1));
+        }
+        Collections.sort(maxList);
+        double myMax = (double)maxList.get(maxList.size() - 1);
+        System.out.println(myMax);
+        return myMax;
+    }
+
     // initializes the probabilities of where the AI is
     void initializeProbabilities() {
         probs = new double[mundo.width][mundo.height];
