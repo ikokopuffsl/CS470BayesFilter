@@ -251,8 +251,8 @@ public class theRobot extends JFrame {
     public static final int EAST = 2;
     public static final int WEST = 3;
     public static final int STAY = 4;
-    public static final int GOAL_REWARD = 100;
-    public static final int STAIRS_REWARD = -20;
+    public static final int GOAL_REWARD = 20;
+    public static final int STAIRS_REWARD = -40;
 
     Color bkgroundColor = new Color(230,230,230);
     
@@ -404,7 +404,7 @@ public class theRobot extends JFrame {
                         utils[x][y] = utils[x][y] + beliefInFuture * (getMaxUtilState(x, y));
                         prettyPrint(utils, "Utility graph");
                         //Check if we have stablized the reward matrix
-                        if (Math.abs(old_util - utils[x][y]) < 0.001){
+                        if (Math.abs(old_util - utils[x][y]) < 0.0001){
                             keepGoing = false;
                         }
                     }
@@ -422,18 +422,18 @@ public class theRobot extends JFrame {
         for (int i = 0; i < 4; i++) {
             ArrayList utilsList = new ArrayList<>();
             if(mundo.grid[x][y-1] != 1){ // up 0
-                utilsList.add((i == 0 ? moveProb : nonMoveProb) * utils[x][y]);
+                utilsList.add((i == 0 ? moveProb : nonMoveProb) * utils[x][y-1]);
             }
             if (mundo.grid[x][y+1] != 1){ // down 1
-                utilsList.add((i == 1 ? moveProb : nonMoveProb) * utils[x][y]);
+                utilsList.add((i == 1 ? moveProb : nonMoveProb) * utils[x][y+1]);
             }
             if (mundo.grid[x+1][y] != 1){ // right 2
-                utilsList.add((i == 2 ? moveProb : nonMoveProb) * utils[x][y]);
+                utilsList.add((i == 2 ? moveProb : nonMoveProb) * utils[x+1][y]);
             }
             if (mundo.grid[x-1][y] != 1){ // left 3
-                utilsList.add((i == 3 ? moveProb : nonMoveProb) * utils[x][y]);
+                utilsList.add((i == 3 ? moveProb : nonMoveProb) * utils[x-1][y]);
             }
-            System.out.println("Move: " + i + " utilsList: " + utilsList.toString());
+            //System.out.println("Move: " + i + " utilsList: " + utilsList.toString());
             Collections.sort(utilsList);
             maxList.add(utilsList.get(utilsList.size() - 1));
         }
