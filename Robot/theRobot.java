@@ -251,8 +251,8 @@ public class theRobot extends JFrame {
     public static final int EAST = 2;
     public static final int WEST = 3;
     public static final int STAY = 4;
-    public static final int GOAL_REWARD = 20;
-    public static final int STAIRS_REWARD = -40;
+    public static final int GOAL_REWARD = 80;
+    public static final int STAIRS_REWARD = -100;
 
     Color bkgroundColor = new Color(230,230,230);
     
@@ -277,8 +277,7 @@ public class theRobot extends JFrame {
     
     // store your probability map (for position of the robot in this array
     double[][] probs;
-    
-    // store your utils for lab 4
+    //Util matrix
     double[][] utils;
     
     public theRobot(String _manual, int _decisionDelay) {
@@ -375,40 +374,50 @@ public class theRobot extends JFrame {
 
     // Create the utils array and fill it
     public void initUtils(){
+        double[][] reward_matrix = new double[mundo.width][mundo.height];
         utils = new double[mundo.width][mundo.height];
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
                 utils[x][y] = 0.0;
+                reward_matrix[x][y] = 0.0;
                 if (mundo.grid[x][y] != 1){
                     if (mundo.grid[x][y] == 3){
-                        utils[x][y] = GOAL_REWARD;
+                        reward_matrix[x][y] = GOAL_REWARD;
                     }
                     else if(mundo.grid[x][y] == 2){
-                        utils[x][y] = STAIRS_REWARD;
+                        reward_matrix[x][y] = STAIRS_REWARD;
                     }
                 }
             }
         }
         prettyPrint(utils, "Utility graph Start");
-        stabilizeUtils();
+        prettyPrint(reward_matrix, "Reward matrix");
+        stabilizeUtils(reward_matrix);
         System.exit(0);
     }
 
-    public void stabilizeUtils(){
+    public void stabilizeUtils(double[][] reward_matrix){
         boolean keepGoing = true;
+        double difference = Double.MIN_VALUE;
+        double inner_dif;
         while (keepGoing){
+            inner_dif = Double.MIN_VALUE;
             for (int y = 0; y < mundo.height; y++) {
                 for (int x = 0; x < mundo.width; x++) {
                     if(mundo.grid[x][y] != 1){
                         double old_util = utils[x][y];
-                        utils[x][y] = utils[x][y] + beliefInFuture * (getMaxUtilState(x, y));
-                        prettyPrint(utils, "Utility graph");
-                        //Check if we have stablized the reward matrix
-                        if (Math.abs(old_util - utils[x][y]) < 0.0001){
-                            keepGoing = false;
+                        utils[x][y] = reward_matrix[x][y] + beliefInFuture * (getMaxUtilState(x, y));
+                        if (Math.abs(old_util - utils[x][y]) > inner_dif){
+                            inner_dif = Math.abs(old_util - utils[x][y]);
                         }
+                        
                     }
                 }
+            }
+            prettyPrint(utils, "Utility graph");
+            //Check if we have stablized the reward matrix
+            if (Math.abs(difference - inner_dif) < 0.01){
+                keepGoing = false;
             }
         }
     }
@@ -433,13 +442,11 @@ public class theRobot extends JFrame {
             if (mundo.grid[x-1][y] != 1){ // left 3
                 utilsList.add((i == 3 ? moveProb : nonMoveProb) * utils[x-1][y]);
             }
-            //System.out.println("Move: " + i + " utilsList: " + utilsList.toString());
             Collections.sort(utilsList);
             maxList.add(utilsList.get(utilsList.size() - 1));
         }
         Collections.sort(maxList);
         double myMax = (double)maxList.get(maxList.size() - 1);
-        System.out.println(myMax);
         return myMax;
     }
 
