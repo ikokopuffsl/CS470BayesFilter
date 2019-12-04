@@ -251,8 +251,8 @@ public class theRobot extends JFrame {
     public static final int EAST = 2;
     public static final int WEST = 3;
     public static final int STAY = 4;
-    public static final int GOAL_REWARD = 80;
-    public static final int STAIRS_REWARD = -100;
+    public static final int GOAL_REWARD = 500;
+    public static final int STAIRS_REWARD = -500;
 
     Color bkgroundColor = new Color(230,230,230);
     
@@ -260,7 +260,7 @@ public class theRobot extends JFrame {
     String mundoName;
     
     World mundo; // mundo contains all the information about the world.  See World.java
-    double moveProb, sensorAccuracy;  // stores probabilies that the robot moves in the intended direction
+    double moveProb, sensorAccuracy, nonMoveProb;  // stores probabilies that the robot moves in the intended direction
                                       // and the probability that a sonar reading is correct, respectively
     
     // variables to communicate with the Server via sockets
@@ -273,7 +273,6 @@ public class theRobot extends JFrame {
     boolean knownPosition = false;
     int startX = -1, startY = -1;
     int decisionDelay = 250;
-    double beliefInFuture = 0.9;
     
     // store your probability map (for position of the robot in this array
     double[][] probs;
@@ -327,6 +326,7 @@ public class theRobot extends JFrame {
             
             mundoName = sin.readLine();
             moveProb = Double.parseDouble(sin.readLine());
+            nonMoveProb = ((1-moveProb)/3);
             sensorAccuracy = Double.parseDouble(sin.readLine());
             System.out.println("Need to open the mundo: " + mundoName);
             System.out.println("moveProb: " + moveProb);
@@ -393,20 +393,28 @@ public class theRobot extends JFrame {
         prettyPrint(utils, "Utility graph Start");
         prettyPrint(reward_matrix, "Reward matrix");
         stabilizeUtils(reward_matrix);
-        System.exit(0);
+        prettyPrint(utils, "Utility graph");
     }
 
     public void stabilizeUtils(double[][] reward_matrix){
         boolean keepGoing = true;
-        double difference = Double.MIN_VALUE;
+        double difference = Double.MAX_VALUE;
         double inner_dif;
+        double beliefInFuture = 0.999;
         while (keepGoing){
             inner_dif = Double.MIN_VALUE;
             for (int y = 0; y < mundo.height; y++) {
                 for (int x = 0; x < mundo.width; x++) {
                     if(mundo.grid[x][y] != 1){
                         double old_util = utils[x][y];
+                        if (reward_matrix[x][y] != 0){
+                            beliefInFuture = 0;
+                        }
+                        else{
+                            beliefInFuture = 0.9;
+                        }
                         utils[x][y] = reward_matrix[x][y] + beliefInFuture * (getMaxUtilState(x, y));
+                        // Finding the greatest different between the old/updated value in utils
                         if (Math.abs(old_util - utils[x][y]) > inner_dif){
                             inner_dif = Math.abs(old_util - utils[x][y]);
                         }
@@ -414,10 +422,12 @@ public class theRobot extends JFrame {
                     }
                 }
             }
-            prettyPrint(utils, "Utility graph");
             //Check if we have stablized the reward matrix
             if (Math.abs(difference - inner_dif) < 0.01){
                 keepGoing = false;
+            }
+            if(inner_dif < difference){
+                difference = inner_dif;
             }
         }
     }
@@ -426,7 +436,6 @@ public class theRobot extends JFrame {
     // public static final int EAST = 2;
     // public static final int WEST = 3;
     public double getMaxUtilState(int x, int y){
-        double nonMoveProb = ((1-moveProb)/3);
         ArrayList maxList = new ArrayList();
         for (int i = 0; i < 4; i++) {
             ArrayList utilsList = new ArrayList<>();
@@ -483,23 +492,22 @@ public class theRobot extends JFrame {
                 }
             }
         }
-        
         myMaps.updateProbs(probs);
     }
     //For example, the sonar string 1001, specifies that the sonars found a wall in the North and West directions, but not in the South and East directions
     double findProbOfSonar(int x, int y,String sonars){
         String actual = "";
-        if (mundo.grid[x][y-1] != 0) {actual += "1";}//up
+        if (mundo.grid[x][y-1] == 1) {actual += "1";}//up
         else {actual += "0";}
-        if (mundo.grid[x][y+1] != 0) {actual += "1";}//down
+        if (mundo.grid[x][y+1] == 1) {actual += "1";}//down
         else {actual += "0";}
-        if (mundo.grid[x+1][y] != 0) {actual += "1";}//right
+        if (mundo.grid[x+1][y] == 1) {actual += "1";}//right
         else {actual += "0";}
-        if (mundo.grid[x-1][y] != 0) {actual += "1";}//left
+        if (mundo.grid[x-1][y] == 1) {actual += "1";}//left
         else {actual += "0";}
-        System.out.println("Reported vs Correct sonar: " + sonars + " " + actual);
+        //System.out.println("Reported vs Correct sonar: " + sonars + " " + actual);
         if (actual.equals(sonars)){
-		    System.out.println("Correct sensors");
+		    //System.out.println("Correct sensors");
 		    return sensorAccuracy;
         }
         else{
@@ -572,15 +580,15 @@ public class theRobot extends JFrame {
             }
         }
     }
-    // TODO: update the probabilities of where the AI thinks it is based on the action selected and the new sonar readings
+
     //       To do this, you should update the 2D-array "probs"
     // Note: sonars is a bit string with four characters, specifying the sonar reading in the direction of North, South, East, and West
     //       For example, the sonar string 1001, specifies that the sonars found a wall in the North and West directions, but not in the South and East directions
     void updateProbabilities(int action, String sonars) {
         // your code
         //copy probs
-         double[][] probsCopy = new double[probs.length][probs.length];
-        //prettyPrint(probs, "probs");
+        double[][] probsCopy = new double[probs.length][probs.length];
+        //prettyPrint(probs, "probs1");
         //prettyPrint(probsCopy, "probsCopy");
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
@@ -590,8 +598,8 @@ public class theRobot extends JFrame {
             }
         }
         updateProbs(probsCopy);
-        //prettyPrint(probs, "probs");
         //probsCopy = new double[probs.length][probs.length];
+        //prettyPrint(probs, "probs2");
         //Add in sensor data
         double normalization = 0.0;
         for (int y = 0; y < mundo.height; y++) {
@@ -601,35 +609,89 @@ public class theRobot extends JFrame {
                     //System.out.println("SonarProb: " + sonarProb);
                     normalization += sonarProb * probs[x][y];
                     //System.out.println("spot: " + probs[x][y]);
-                    probs[x][y] = sonarProb * probs[x][y];
+                    probs[x][y] = sonarProb * probs[x][y]; // used to be just probs
                     //prettyPrint(probsCopy, "probsCopy");
                 }
             }
         }
-        //System.out.println("normal: " + normalization);
-       
-        //probsCopy = new double[probs.length][probs.length];
         //Add in normalization constant
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
-                probs[x][y] = (1/normalization) * probs[x][y];
+                probs[x][y] = (1/normalization) * probs[x][y]; // used to just be equal to probs
             }
         }
-        //prettyPrint(probsCopy, "probsCopy");
-        
-        //prettyPrint(probs, "Update Probabilities");
-        updateProbs(probsCopy);
+        //updateProbs(probsCopy);
+        //prettyPrint(probs, "probs3");
         myMaps.updateProbs(probs); // call this function after updating your probabilities so that the
                                    //  new probabilities will show up in the probability map on the GUI
+    }                  //  new probabilities will show up in the probability map on the GUI
+
+
+     // Gets the action that has garned the greatest utility overall
+     int getAction(double[] move_array){
+        double max = Double.MIN_VALUE;
+        int index = -1;
+
+        for(int i = 0; i < move_array.length; i++){
+            if(max < move_array[i]){
+                max = move_array[i];
+                index = i;
+            }
+        }
+        System.out.println("Move: " + index);
+        return index;
     }
 
     // This is the function you'd need to write to make the robot move using your AI;
-    // You do NOT need to write this function for this lab; it can remain as is
+    // in this function we define how to choose an action. Basically you must see which direction garners the greatest utility
+    // while factoring in the probability you are at squares allowing you to move in those directions
+    // NORTH = 0;
+    // SOUTH = 1;
+    // EAST = 2;
+    // WEST = 3;
+    // STAY = 4
     int automaticAction() {
-        
-        return STAY;  // default action for now
+        // array holding each of the values for moving in a given direction
+        double [] move_array = new double[4];
+        //prettyPrint(probs, "Probs_action");
+        // for every move I can make
+        for (int i = 0; i < 4; i++) {
+            double move_value = 0;
+            // for every state in the matrix
+            for (int y = 0; y < mundo.height; y++) {
+                for (int x = 0; x < mundo.width; x++) {
+                    double extraProb = 0.0;
+                    // only look at the spaces you can move to
+                    if(mundo.grid[x][y] != 1){
+                            // add up the prob ill go to a square times the utility of that square times the prob in a position to get there
+                        if(mundo.grid[x][y-1] !=1 ){
+                            move_value += ((i == 0 ? moveProb : nonMoveProb) * utils[x][y-1]) * probs[x][y];
+                        }
+                        if(mundo.grid[x][y+1] !=1 ){
+                            move_value += ((i == 1 ? moveProb : nonMoveProb) * utils[x][y+1]) * probs[x][y];
+                        }
+                        if(mundo.grid[x+1][y] !=1 ){
+                            move_value += ((i == 2 ? moveProb : nonMoveProb) * utils[x+1][y]) * probs[x][y];
+                        }
+                        if(mundo.grid[x-1][y] !=1 ){
+                            move_value += ((i == 3 ? moveProb : nonMoveProb) * utils[x-1][y]) * probs[x][y];
+                        }
+                        // prob im going to be staying put
+                        //System.out.println(extraProb + " " + probs[x][y] + " " + utils[x][y]);
+                        //move_value += extraProb * probs[x][y] * utils[x][y]; 
+                    }
+                }
+            }
+            move_array[i] = move_value;
+        }
+        // for (int i = 0; i < move_array.length; i++) {
+        //     System.out.print(move_array[i] + " ");
+        // }
+        // System.out.println();
+        return getAction(move_array);
+
     }
-    
+
     void doStuff() {
         int action;
         
